@@ -1,14 +1,18 @@
 {
   "manifest_version": 3,
   "name": "WorkLess Apprentice",
-  "version": "1.1",
-  "permissions": ["storage", "activeTab"],
+  "version": "1.0",
+  "permissions": ["activeTab", "scripting", "tabs"],
   "externally_connectable": {
-    "matches": ["https://clarityv1.github.io*"]
+    "matches": ["https://clarityv1.github.io/*"]
   },
-  "action": { "default_popup": "popup.html" },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["content.js"]
-  }]
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }

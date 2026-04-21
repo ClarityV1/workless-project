@@ -1,22 +1,31 @@
+let isRecording = false;
+let recordedActions = [];
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "START_RECORDING") {
         isRecording = true;
-        recordedActions = []; // Reset for new recording
-        console.log("Apprentice: Starting to watch your clicks...");
-        sendResponse({status: "started"});
+        recordedActions = [];
+        console.log("Apprentice: Watching...");
+    } else if (request.action === "STOP_RECORDING") {
+        isRecording = false;
+        
+        // This broadcasts the message to the whole browser
+        window.postMessage({ 
+            type: "WORKLESS_TASK", 
+            payload: recordedActions 
+        }, "*");
+
+        sendResponse({ data: recordedActions });
     }
-    // ... rest of your code
-    return true; // This keeps the connection open
+    return true;
 });
-if (request.action === "STOP_RECORDING") {
-    isRecording = false;
-    console.log("Apprentice: Stopping and sending data...");
 
-    // This is the bridge to your website
-    window.postMessage({
-        type: "WORKLESS_TASK",
-        payload: recordedActions
-    }, "*");
-
-    sendResponse({ data: recordedActions });
-}
+document.addEventListener('click', (e) => {
+    if (!isRecording) return;
+    
+    recordedActions.push({
+        element: e.target.tagName.toLowerCase(),
+        text: e.target.innerText || e.target.value || "Button",
+        time: Date.now()
+    });
+});

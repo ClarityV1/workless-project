@@ -5,16 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     startBtn.addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            // This tells the page to start watching your clicks
             chrome.tabs.sendMessage(tabs[0].id, {action: "START_RECORDING"});
-            statusText.innerText = "🔴 Learning...";
+            statusText.innerText = "Recording...";
         });
     });
 
     stopBtn.addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             chrome.tabs.sendMessage(tabs[0].id, {action: "STOP_RECORDING"}, (response) => {
-                statusText.innerText = "✅ Task Saved!";
+                statusText.innerText = "Task Saved!";
             });
         });
     });

@@ -1,17 +1,39 @@
-<div id="dashboard" style="max-width: 600px; margin: auto; text-align: left;">
-    <h2>📥 New Task Received</h2>
-    <div id="task-list" style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
-        <p>Waiting for the Apprentice to send a task...</p>
-    </div>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WorkLess Brain</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; }
+        #display { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; }
+        .step { border-bottom: 1px solid #eee; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>WorkLess Brain</h1>
+    <div id="display">Waiting for Apprentice recording...</div>
 
-<script>
-    // Listen for messages from the Apprentice Extension
-    window.addEventListener("message", (event) => {
-        if (event.data.type === "WORKLESS_TASK") {
-            const list = document.getElementById('task-list');
-            list.innerHTML = `<strong>Task Captured:</strong> ${event.data.payload.length} actions recorded.`;
-            console.log("Brain received task:", event.data.payload);
-        }
-    });
-</script>
+    <script>
+        // This listener is what catches the message from Tab 2
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "WORKLESS_TASK") {
+                const data = event.data.payload;
+                const display = document.getElementById('display');
+                
+                if (data.length === 0) {
+                    display.innerHTML = "No actions recorded.";
+                    return;
+                }
+
+                display.innerHTML = "<h3>Captured Steps:</h3>";
+                data.forEach((step, index) => {
+                    display.innerHTML += `
+                        <div class="step">
+                            <strong>Step ${index + 1}:</strong> 
+                            Clicked ${step.element} with text "${step.text}"
+                        </div>`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

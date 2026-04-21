@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WorkLess</title>
+    <style>
+        body { width: 200px; padding: 15px; font-family: sans-serif; }
+        button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; border: none; border-radius: 4px; color: white; font-weight: bold; }
+        #start { background: #22c55e; }
+        #stop { background: #64748b; }
+    </style>
 </head>
-<body style="width: 200px; padding: 15px; font-family: sans-serif;">
+<body>
     <h3>WorkLess</h3>
-    <button id="start" style="width:100%; padding:10px; background:#22c55e; color:white; border:none; border-radius:4px; cursor:pointer;">Start Guided Learning</button>
-    <button id="stop" style="width:100%; padding:10px; background:#64748b; color:white; border:none; border-radius:4px; margin-top:5px; cursor:pointer;">Stop & Save</button>
-    <p id="status" style="font-size: 12px; color: #666; margin-top:10px;">Ready...</p>
-    
+    <button id="start">Start Guided Learning</button>
+    <button id="stop">Stop & Save</button>
+    <p id="status" style="font-size: 12px; color: #666; text-align: center;">Ready...</p>
     <script src="popup.js"></script>
 </body>
 </html>

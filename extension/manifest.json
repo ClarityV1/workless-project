@@ -4,7 +4,7 @@
   "version": "1.1",
   "permissions": ["storage", "activeTab"],
   "externally_connectable": {
-    "matches": ["https://YOUR_GITHUB_USERNAME.github.io/*"]
+    "matches": ["https://clarityv1.github.io/workless-project/*"]
   },
   "action": { "default_popup": "popup.html" },
   "content_scripts": [{

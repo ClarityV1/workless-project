@@ -3,8 +3,8 @@
 <head>
     <title>WorkLess Brain</title>
     <style>
-        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; }
-        #display { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; }
+        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; color: #333; }
+        #display { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-height: 100px; }
         .step { border-bottom: 1px solid #eee; padding: 10px 0; }
     </style>
 </head>
@@ -13,26 +13,24 @@
     <div id="display">Waiting for Apprentice recording...</div>
 
     <script>
-        // This listener is what catches the message from Tab 2
-        window.addEventListener("message", (event) => {
-            if (event.data && event.data.type === "WORKLESS_TASK") {
-                const data = event.data.payload;
-                const display = document.getElementById('display');
-                
-                if (data.length === 0) {
-                    display.innerHTML = "No actions recorded.";
-                    return;
-                }
-
-                display.innerHTML = "<h3>Captured Steps:</h3>";
-                data.forEach((step, index) => {
-                    display.innerHTML += `
-                        <div class="step">
-                            <strong>Step ${index + 1}:</strong> 
-                            Clicked ${step.element} with text "${step.text}"
-                        </div>`;
-                });
+        // Listening for the specific 'WorkLessData' event from the extension
+        window.addEventListener('WorkLessData', function (e) {
+            const data = e.detail;
+            const display = document.getElementById('display');
+            
+            if (!data || data.length === 0) {
+                display.innerHTML = "No actions recorded yet.";
+                return;
             }
+
+            display.innerHTML = "<h3>Captured Steps:</h3>";
+            data.forEach((step, index) => {
+                display.innerHTML += `
+                    <div class="step">
+                        <strong>Step ${index + 1}:</strong> 
+                        Clicked ${step.element} ("${step.text}") at ${step.time}
+                    </div>`;
+            });
         });
     </script>
 </body>

@@ -9,11 +9,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === "STOP_RECORDING") {
         isRecording = false;
         
-        // This broadcasts the message to the whole browser
-        window.postMessage({ 
-            type: "WORKLESS_TASK", 
-            payload: recordedActions 
-        }, "*");
+        // This is the "Shout" that the website is listening for
+        window.dispatchEvent(new CustomEvent('WorkLessData', { 
+            detail: recordedActions 
+        }));
 
         sendResponse({ data: recordedActions });
     }
@@ -22,10 +21,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 document.addEventListener('click', (e) => {
     if (!isRecording) return;
-    
     recordedActions.push({
         element: e.target.tagName.toLowerCase(),
-        text: e.target.innerText || e.target.value || "Button",
-        time: Date.now()
+        text: e.target.innerText || e.target.value || "Element",
+        time: new Date().toLocaleTimeString()
     });
 });

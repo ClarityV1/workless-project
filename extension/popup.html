@@ -1,19 +1,28 @@
-<div style="width: 200px; padding: 10px;">
-  <h3>WorkLess</h3>
-  <button id="start" style="width:100%; background:green; color:white;">Start Guided Learning</button>
-  <p id="status" style="font-size:10px;">Ready...</p>
-</div>
-// This function sends the recorded task to your GitHub website
-function sendTaskToBrain(taskData) {
-    const websiteUrl = "https://github.com/ClarityV1/workless-project";
-    
-    // We send it to the website's localStorage so it shows up on your dashboard
-    chrome.tabs.query({url: websiteUrl + "*"}, (tabs) => {
-        if (tabs.length > 0) {
-            chrome.tabs.sendMessage(tabs[0].id, {
-                action: "INCOMING_TASK",
-                data: taskData
-            });
-        }
+document.getElementById('start').addEventListener('click', () => {
+    // 1. Find the tab you are currently looking at
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        const activeTab = tabs[0];
+        
+        // 2. Send the "START" message to that tab
+        chrome.tabs.sendMessage(activeTab.id, {action: "START_RECORDING"}, (response) => {
+            if (chrome.runtime.lastError) {
+                // If the page hasn't been refreshed, it might not "hear" the extension
+                document.getElementById('status').innerText = "❌ Refresh the page first!";
+            } else {
+                document.getElementById('status').innerText = "🔴 Learning...";
+            }
+        });
     });
-}
+});
+
+// We keep the Stop button logic too
+document.getElementById('stop').addEventListener('click', () => {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {action: "STOP_RECORDING"}, (response) => {
+            if (response && response.data) {
+                document.getElementById('status').innerText = "✅ Task Saved!";
+                console.log("Captured Data:", response.data);
+            }
+        });
+    });
+});

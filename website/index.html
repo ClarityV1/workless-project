@@ -1,12 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head><title>WorkLess Hub</title></head>
-<body style="font-family: sans-serif; padding: 50px; text-align: center;">
-  <h1>WorkLess Brain</h1>
-  <p>This is where your "Learned Tasks" will appear.</p>
-  <div style="border: 2px dashed #ccc; padding: 20px; border-radius: 10px;">
-    <h3>No Tasks Learned Yet</h3>
-    <p>Use the Extension to teach me something!</p>
-  </div>
-</body>
-</html>
+<div id="dashboard" style="max-width: 600px; margin: auto; text-align: left;">
+    <h2>📥 New Task Received</h2>
+    <div id="task-list" style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
+        <p>Waiting for the Apprentice to send a task...</p>
+    </div>
+</div>
+
+<script>
+    // Listen for messages from the Apprentice Extension
+    window.addEventListener("message", (event) => {
+        if (event.data.type === "WORKLESS_TASK") {
+            const list = document.getElementById('task-list');
+            list.innerHTML = `<strong>Task Captured:</strong> ${event.data.payload.length} actions recorded.`;
+            console.log("Brain received task:", event.data.payload);
+        }
+    });
+</script>

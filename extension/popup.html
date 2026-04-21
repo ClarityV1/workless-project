@@ -3,3 +3,17 @@
   <button id="start" style="width:100%; background:green; color:white;">Start Guided Learning</button>
   <p id="status" style="font-size:10px;">Ready...</p>
 </div>
+// This function sends the recorded task to your GitHub website
+function sendTaskToBrain(taskData) {
+    const websiteUrl = "https://github.com/ClarityV1/workless-project";
+    
+    // We send it to the website's localStorage so it shows up on your dashboard
+    chrome.tabs.query({url: websiteUrl + "*"}, (tabs) => {
+        if (tabs.length > 0) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+                action: "INCOMING_TASK",
+                data: taskData
+            });
+        }
+    });
+}

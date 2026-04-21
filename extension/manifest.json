@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "WorkLess Apprentice",
+  "version": "1.0",
+  "description": "Guided Task Recorder",
+  "permissions": ["storage", "activeTab"],
+  "action": { "default_popup": "popup.html" },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"]
+  }]
+}

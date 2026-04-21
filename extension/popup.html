@@ -1,28 +1,19 @@
-document.getElementById('start').addEventListener('click', () => {
-    // 1. Find the tab you are currently looking at
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        const activeTab = tabs[0];
-        
-        // 2. Send the "START" message to that tab
-        chrome.tabs.sendMessage(activeTab.id, {action: "START_RECORDING"}, (response) => {
-            if (chrome.runtime.lastError) {
-                // If the page hasn't been refreshed, it might not "hear" the extension
-                document.getElementById('status').innerText = "❌ Refresh the page first!";
-            } else {
-                document.getElementById('status').innerText = "🔴 Learning...";
-            }
-        });
-    });
-});
-
-// We keep the Stop button logic too
-document.getElementById('stop').addEventListener('click', () => {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {action: "STOP_RECORDING"}, (response) => {
-            if (response && response.data) {
-                document.getElementById('status').innerText = "✅ Task Saved!";
-                console.log("Captured Data:", response.data);
-            }
-        });
-    });
-});
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { width: 200px; padding: 15px; font-family: sans-serif; }
+        button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; }
+        #start { background: #22c55e; color: white; border: none; border-radius: 4px; }
+        #stop { background: #64748b; color: white; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h3>WorkLess</h3>
+    <button id="start">Start Guided Learning</button>
+    <button id="stop">Stop & Save</button>
+    <p id="status" style="font-size: 12px; color: #666;">Ready...</p>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

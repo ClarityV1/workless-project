@@ -8,3 +8,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // ... rest of your code
     return true; // This keeps the connection open
 });
+if (request.action === "STOP_RECORDING") {
+    isRecording = false;
+    console.log("Apprentice: Stopping and sending data...");
+
+    // This is the bridge to your website
+    window.postMessage({
+        type: "WORKLESS_TASK",
+        payload: recordedActions
+    }, "*");
+
+    sendResponse({ data: recordedActions });
+}

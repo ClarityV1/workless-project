@@ -1,13 +1,10 @@
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     const startBtn = document.getElementById('start');
     const stopBtn = document.getElementById('stop');
     const statusText = document.getElementById('status');
 
-    // 1. Check if the page is ALREADY recording when we open the popup
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-    
-    chrome.tabs.sendMessage(tab.id, {action: "GET_STATUS"}, (response) => {
-        if (response && response.isRecording) {
+    chrome.storage.local.get(['isRecording'], function(result) {
+        if (result.isRecording) {
             statusText.innerText = "Recording...";
         } else {
             statusText.innerText = "Ready...";
@@ -15,14 +12,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     startBtn.addEventListener('click', () => {
-        chrome.tabs.sendMessage(tab.id, {action: "START_RECORDING"}, () => {
+        chrome.storage.local.set({ isRecording: true, recordedActions: [] }, () => {
             statusText.innerText = "Recording...";
         });
     });
 
     stopBtn.addEventListener('click', () => {
-        chrome.tabs.sendMessage(tab.id, {action: "STOP_RECORDING"}, (response) => {
-            statusText.innerText = "Saved!";
+        chrome.storage.local.set({ isRecording: false }, () => {
+            statusText.innerText = "Saved! Check your Brain site.";
         });
     });
 });

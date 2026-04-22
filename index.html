@@ -1,27 +1,27 @@
-<script>
-    console.log("Brain is awake and listening...");
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WorkLess Brain</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; }
+        #display { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>WorkLess Brain</h1>
+    <div id="display">Waiting for Apprentice...</div>
 
-    window.addEventListener("message", (event) => {
-        // Pulse Check: This will show up in your console if ANY message arrives
-        console.log("Message received from:", event.origin);
-        
-        if (event.data && event.data.type === "WORKLESS_TASK") {
-            const data = event.data.payload;
-            const display = document.getElementById('display');
-            
-            if (!data || data.length === 0) {
-                display.innerHTML = "Recording stopped, but no clicks were detected.";
-                return;
+    <script>
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "WORKLESS_TASK") {
+                const data = event.data.payload;
+                const display = document.getElementById('display');
+                display.innerHTML = "<h3>Steps Received:</h3>";
+                data.forEach((step, index) => {
+                    display.innerHTML += `<p>Step ${index + 1}: Clicked ${step.element} (${step.text})</p>`;
+                });
             }
-
-            display.innerHTML = "<h3>Captured Steps:</h3>";
-            data.forEach((step, index) => {
-                display.innerHTML += `
-                    <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                        <strong>Step ${index + 1}:</strong> Clicked ${step.element} 
-                        (Text: "${step.text}")
-                    </div>`;
-            });
-        }
-    });
-</script>
+        });
+    </script>
+</body>
+</html>

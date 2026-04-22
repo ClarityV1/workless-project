@@ -1,20 +1,24 @@
-let isRecording = false;
-let recordedActions = [];
+document.addEventListener('click', (e) => {
+    chrome.storage.local.get(['isRecording', 'recordedActions'], function(result) {
+        if (!result.isRecording) return;
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "GET_STATUS") {
-        // This tells the popup "Yes, I am still recording!"
-        sendResponse({isRecording: isRecording});
-    } else if (request.action === "START_RECORDING") {
-        isRecording = true;
-        recordedActions = [];
-        sendResponse({status: "Started"});
-    } else if (request.action === "STOP_RECORDING") {
-        isRecording = false;
-        window.postMessage({ type: "WORKLESS_TASK", payload: recordedActions }, "*");
-        sendResponse({ data: recordedActions });
-    }
-    return true;
+        let actions = result.recordedActions || [];
+        actions.push({
+            element: e.target.tagName.toLowerCase(),
+            text: e.target.innerText ? e.target.innerText.substring(0, 20) : "Click",
+            time: new Date().toLocaleTimeString()
+        });
+
+        chrome.storage.local.set({ recordedActions: actions });
+    });
 });
 
-// ... keep the rest of your click listener code below this ...
+if (window.location.href.includes("clarityv1.github.io")) {
+    setInterval(() => {
+        chrome.storage.local.get(['recordedActions'], function(result) {
+            if (result.recordedActions && result.recordedActions.length > 0) {
+                window.postMessage({ type: "WORKLESS_TASK", payload: result.recordedActions }, "*");
+            }
+        });
+    }, 2000);
+}

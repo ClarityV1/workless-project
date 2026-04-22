@@ -1,29 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const startBtn = document.getElementById('start');
-    const stopBtn = document.getElementById('stop');
-    const runBtn = document.getElementById('run');
     const statusText = document.getElementById('status');
 
-    // Check current status when popup opens
-    chrome.storage.local.get(['isRecording'], (result) => {
-        if (result.isRecording) statusText.innerText = "Recording...";
+    chrome.storage.local.get(['isRecording'], (res) => {
+        if (res.isRecording) statusText.innerText = "Recording...";
     });
 
-    startBtn.addEventListener('click', () => {
+    document.getElementById('start').addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             chrome.tabs.sendMessage(tabs[0].id, {action: "START_RECORDING"});
             statusText.innerText = "Recording...";
         });
     });
 
-    stopBtn.addEventListener('click', () => {
+    document.getElementById('stop').addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             chrome.tabs.sendMessage(tabs[0].id, {action: "STOP_RECORDING"});
-            statusText.innerText = "Saved to Brain!";
+            statusText.innerText = "Saved!";
         });
     });
 
-    runBtn.addEventListener('click', () => {
+    document.getElementById('run').addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
             chrome.tabs.sendMessage(tabs[0].id, {action: "RUN_AUTOFILL"});
             statusText.innerText = "Bot Running...";

@@ -3,42 +3,23 @@
 <head>
     <title>WorkLess Brain</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f0f2f5; color: #1c1e21; }
-        .container { max-width: 800px; margin: auto; }
-        #display { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .step-card { border-left: 4px solid #22c55e; background: #f9fafb; margin-bottom: 15px; padding: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-        .step-type { font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: bold; }
-        .step-content { font-size: 16px; font-weight: 500; }
-        .badge { background: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        body { font-family: sans-serif; padding: 40px; background: #f0f2f5; }
+        #display { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .entry { padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>WorkLess Apprentice Log</h1>
-        <div id="display">Waiting for recording data...</div>
-    </div>
+    <h1>WorkLess Apprentice Log</h1>
+    <div id="display">Waiting for data from extension...</div>
 
     <script>
         window.addEventListener("message", (event) => {
             if (event.data && event.data.type === "WORKLESS_TASK") {
                 const data = event.data.payload;
                 const display = document.getElementById('display');
-                
-                if (!data || data.length === 0) {
-                    display.innerHTML = "<em>No steps recorded in this session.</em>";
-                    return;
-                }
-
-                display.innerHTML = ""; // Clear the "Waiting" message
-                data.forEach((step, index) => {
-                    display.innerHTML += `
-                        <div class="step-card">
-                            <div>
-                                <div class="step-type">${step.type || 'Action'}</div>
-                                <div class="step-content">${step.text}</div>
-                            </div>
-                            <div class="badge">${step.element}</div>
-                        </div>`;
+                display.innerHTML = "<h3>Live Recording Data:</h3>";
+                data.forEach((step, i) => {
+                    display.innerHTML += `<div class="entry">Step ${i+1}: <b>${step.text}</b> (${step.element})</div>`;
                 });
             }
         });

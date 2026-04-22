@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>WorkLess Brain</title>
-    <style>
-        body { font-family: sans-serif; padding: 40px; background: #f4f4f9; color: #333; }
-        #display { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-height: 100px; }
-        .step { border-bottom: 1px solid #eee; padding: 10px 0; }
-    </style>
-</head>
-<body>
-    <h1>WorkLess Brain</h1>
-    <div id="display">Waiting for Apprentice recording...</div>
+<script>
+    console.log("Brain is awake and listening...");
 
-    <script>
-        // Listening for the specific 'WorkLessData' event from the extension
-        window.addEventListener('WorkLessData', function (e) {
-            const data = e.detail;
+    window.addEventListener("message", (event) => {
+        // Pulse Check: This will show up in your console if ANY message arrives
+        console.log("Message received from:", event.origin);
+        
+        if (event.data && event.data.type === "WORKLESS_TASK") {
+            const data = event.data.payload;
             const display = document.getElementById('display');
             
             if (!data || data.length === 0) {
-                display.innerHTML = "No actions recorded yet.";
+                display.innerHTML = "Recording stopped, but no clicks were detected.";
                 return;
             }
 
             display.innerHTML = "<h3>Captured Steps:</h3>";
             data.forEach((step, index) => {
                 display.innerHTML += `
-                    <div class="step">
-                        <strong>Step ${index + 1}:</strong> 
-                        Clicked ${step.element} ("${step.text}") at ${step.time}
+                    <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                        <strong>Step ${index + 1}:</strong> Clicked ${step.element} 
+                        (Text: "${step.text}")
                     </div>`;
             });
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+</script>

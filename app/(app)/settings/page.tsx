@@ -40,7 +40,7 @@ export default function SettingsPage() {
     name: '',
     role: 'Shift Manager',
     site: '',
-    gemini_api_key: '',
+    ai_api_key: '',
   })
 
   const [userEmail, setUserEmail] = useState('')
@@ -65,7 +65,7 @@ export default function SettingsPage() {
           name: data.name || '',
           role: data.role || 'Shift Manager',
           site: data.site || '',
-          gemini_api_key: data.gemini_api_key || '',
+          ai_api_key: data.ai_api_key || '',
         })
       }
       setLoading(false)
@@ -86,7 +86,7 @@ export default function SettingsPage() {
         name: form.name || null,
         role: form.role || 'Shift Manager',
         site: form.site || null,
-        gemini_api_key: form.gemini_api_key || null,
+        ai_api_key: form.ai_api_key || null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'id' }
@@ -226,19 +226,19 @@ export default function SettingsPage() {
                 AI Integration
               </h2>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--text2)' }}>
-                Connect your Google Gemini API key to enable AI-powered review generation.
+                Connect your Anthropic API key to enable AI-powered review generation.
               </p>
             </div>
 
             <div>
-              <label style={labelStyle}>Gemini API Key</label>
+              <label style={labelStyle}>Anthropic API Key</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showApiKey ? 'text' : 'password'}
                   style={{ ...inputStyle, paddingRight: '48px' }}
-                  value={form.gemini_api_key}
-                  onChange={e => setForm(f => ({ ...f, gemini_api_key: e.target.value }))}
-                  placeholder="AIza..."
+                  value={form.ai_api_key}
+                  onChange={e => setForm(f => ({ ...f, ai_api_key: e.target.value }))}
+                  placeholder="sk-ant-..."
                   onFocus={e => (e.currentTarget.style.borderColor = '#2557ff')}
                   onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
@@ -271,13 +271,14 @@ export default function SettingsPage() {
               >
                 Get your key at{' '}
                 <a
-                  href="https://aistudio.google.com/app/apikey"
+                  href="https://console.anthropic.com/settings/keys"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: '#2557ff', textDecoration: 'none' }}
                 >
-                  aistudio.google.com
+                  console.anthropic.com
                 </a>
+                {' '}— stored securely, never sent to the browser
               </p>
             </div>
           </div>

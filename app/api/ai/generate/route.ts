@@ -39,16 +39,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'member_id and review_type are required' }, { status: 400 })
     }
 
-    // Get profile with Gemini API key
+    // Get profile with AI API key
     const { data: profile } = await supabase
       .from('profiles')
-      .select('gemini_api_key, name, role, site')
+      .select('ai_api_key, name, role, site')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.gemini_api_key) {
+    if (!profile?.ai_api_key) {
       return NextResponse.json(
-        { error: 'No Gemini API key configured. Please add your API key in Settings.' },
+        { error: 'No Anthropic API key configured. Please add your API key in Settings.' },
         { status: 400 }
       )
     }
@@ -123,7 +123,7 @@ Please write a complete, professional ${review_type} document. The document shou
 
 Format the document clearly with appropriate sections. Do not use markdown — use plain text with clear section headings in UPPERCASE.`
 
-    const generatedText = await callGemini(profile.gemini_api_key, prompt)
+    const generatedText = await callClaude(profile.ai_api_key, prompt)
     return NextResponse.json({ text: generatedText })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error'
@@ -131,44 +131,43 @@ Format the document clearly with appropriate sections. Do not use markdown — u
   }
 }
 
-async function callGemini(apiKey: string, prompt: string, attempt = 1): Promise<string> {
+async function callClaude(apiKey: string, prompt: string, attempt = 1): Promise<string> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 25_000)
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          },
-        }),
-      }
-    )
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
 
     clearTimeout(timer)
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))
-      throw new Error(errData?.error?.message || `Gemini API error: ${res.status}`)
+      throw new Error(errData?.error?.message || `Anthropic API error: ${res.status}`)
     }
 
     const data = await res.json()
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) throw new Error('No content generated from Gemini')
+    const text = data?.content?.[0]?.text
+    if (!text) throw new Error('No content generated')
     return text
   } catch (err: unknown) {
     clearTimeout(timer)
     const isTimeout = err instanceof Error && err.name === 'AbortError'
     if (isTimeout && attempt < 3) {
       await new Promise(r => setTimeout(r, 1000 * attempt))
-      return callGemini(apiKey, prompt, attempt + 1)
+      return callClaude(apiKey, prompt, attempt + 1)
     }
     throw err
   }

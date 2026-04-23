@@ -51,5 +51,5 @@ export interface Profile {
   name: string | null
   role: string | null
   site: string | null
-  gemini_api_key: string | null
+  ai_api_key: string | null
 }

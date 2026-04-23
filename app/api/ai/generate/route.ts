@@ -119,48 +119,57 @@ Please write a complete, professional ${review_type} document. The document shou
 4. Include specific action points or next steps where appropriate
 5. Be suitable for an HR file
 6. Be written in UK English
-7. Be approximately 400-600 words
+7. Be concise — around 300 words maximum
 
 Format the document clearly with appropriate sections. Do not use markdown — use plain text with clear section headings in UPPERCASE.`
 
-    // Call Gemini API
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${profile.gemini_api_key}`,
+    const generatedText = await callGemini(profile.gemini_api_key, prompt)
+    return NextResponse.json({ text: generatedText })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+async function callGemini(apiKey: string, prompt: string, attempt = 1): Promise<string> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 25_000)
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1500,
+            maxOutputTokens: 500,
           },
         }),
       }
     )
 
-    if (!geminiResponse.ok) {
-      const errorData = await geminiResponse.json().catch(() => ({}))
-      const errorMessage =
-        errorData?.error?.message || `Gemini API error: ${geminiResponse.status}`
-      return NextResponse.json({ error: errorMessage }, { status: 500 })
+    clearTimeout(timer)
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData?.error?.message || `Gemini API error: ${res.status}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const generatedText =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text
-
-    if (!generatedText) {
-      return NextResponse.json({ error: 'No content generated from Gemini' }, { status: 500 })
-    }
-
-    return NextResponse.json({ text: generatedText })
+    const data = await res.json()
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) throw new Error('No content generated from Gemini')
+    return text
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    clearTimeout(timer)
+    const isTimeout = err instanceof Error && err.name === 'AbortError'
+    if (isTimeout && attempt < 3) {
+      await new Promise(r => setTimeout(r, 1000 * attempt))
+      return callGemini(apiKey, prompt, attempt + 1)
+    }
+    throw err
   }
 }

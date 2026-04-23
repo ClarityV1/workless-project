@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/Toast'
 import type { TeamMember, PerformanceLog, Review, Template, Profile } from '@/lib/types'
@@ -29,6 +30,7 @@ function formatDate(dateStr: string): string {
 export default function DashboardPage() {
   const supabase = createClient()
   const { showToast } = useToast()
+  const router = useRouter()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
@@ -85,6 +87,17 @@ export default function DashboardPage() {
   }).length
 
   const onProbation = members.filter(m => m.status === 'Probation').length
+
+  // Probation reviews due within 14 days
+  const today = new Date()
+  const in14 = new Date(today)
+  in14.setDate(today.getDate() + 14)
+  const dueSoon = members.filter(m =>
+    m.status === 'Probation' &&
+    m.probation_end_date &&
+    new Date(m.probation_end_date) <= in14 &&
+    new Date(m.probation_end_date) >= today
+  )
 
   // Build activity feed
   const activity: ActivityItem[] = [
@@ -201,6 +214,90 @@ export default function DashboardPage() {
           + Log Performance
         </Link>
       </div>
+
+      {/* Probation alert banner */}
+      {!loading && dueSoon.length > 0 && (
+        <div
+          style={{
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            borderRadius: '10px',
+            padding: '14px 18px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '16px',
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '6px',
+              }}
+            >
+              <span style={{ fontSize: '16px' }}>⚠️</span>
+              <span
+                style={{
+                  fontFamily: 'Syne, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  color: '#92400e',
+                }}
+              >
+                Probation reviews due soon
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {dueSoon.map(m => (
+                <span
+                  key={m.id}
+                  style={{
+                    fontSize: '13px',
+                    fontFamily: 'DM Sans, sans-serif',
+                    color: '#78350f',
+                  }}
+                >
+                  {m.first_name} {m.last_name} —{' '}
+                  <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px' }}>
+                    {m.probation_end_date
+                      ? new Date(m.probation_end_date).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : ''}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/reviews')}
+            style={{
+              padding: '8px 16px',
+              background: '#d97706',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '13px',
+              fontWeight: 600,
+              fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'background 0.15s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#b45309')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#d97706')}
+          >
+            Generate Reviews →
+          </button>
+        </div>
+      )}
 
       {/* Stats grid */}
       {loading ? (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/Toast'
 import type { TeamMember, Review } from '@/lib/types'
@@ -21,6 +21,7 @@ function formatDate(dateStr: string): string {
 export default function ReviewsPage() {
   const supabase = createClient()
   const { showToast } = useToast()
+  const aiOutputRef = useRef<HTMLDivElement>(null)
 
   const [members, setMembers] = useState<TeamMember[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
@@ -32,6 +33,17 @@ export default function ReviewsPage() {
   const [reviewType, setReviewType] = useState(REVIEW_TYPES[0])
   const [generatedText, setGeneratedText] = useState('')
   const [reviewDate, setReviewDate] = useState(new Date().toISOString().split('T')[0])
+
+  // Probation due-soon members
+  const today = new Date()
+  const in14 = new Date(today)
+  in14.setDate(today.getDate() + 14)
+  const dueSoon = members.filter(m =>
+    m.status === 'Probation' &&
+    m.probation_end_date &&
+    new Date(m.probation_end_date) <= in14 &&
+    new Date(m.probation_end_date) >= today
+  )
 
   const loadData = useCallback(async () => {
     const {
@@ -88,6 +100,44 @@ export default function ReviewsPage() {
 
       setGeneratedText(data.text)
       showToast('Review generated successfully', 'success')
+      setTimeout(() => {
+        aiOutputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to generate review'
+      showToast(message, 'error')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleAutoGenerate = async (memberId: string) => {
+    setSelectedMember(memberId)
+    setReviewType('Probation Review')
+    setGenerating(true)
+    setGeneratedText('')
+
+    try {
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          member_id: memberId,
+          review_type: 'Probation Review',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Generation failed')
+      }
+
+      setGeneratedText(data.text)
+      showToast('Probation review generated', 'success')
+      setTimeout(() => {
+        aiOutputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate review'
       showToast(message, 'error')
@@ -176,8 +226,113 @@ export default function ReviewsPage() {
         </p>
       </div>
 
+      {/* Probation due-soon panel */}
+      {!loading && dueSoon.length > 0 && (
+        <div
+          style={{
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            borderRadius: '12px',
+            padding: '20px 24px',
+            marginBottom: '24px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '14px',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>⚠️</span>
+            <span
+              style={{
+                fontFamily: 'Syne, sans-serif',
+                fontWeight: 700,
+                fontSize: '15px',
+                color: '#92400e',
+              }}
+            >
+              Probation reviews due within 14 days
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {dueSoon.map(m => (
+              <div
+                key={m.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  padding: '12px 16px',
+                  background: 'rgba(255,255,255,0.7)',
+                  border: '1px solid #fde68a',
+                  borderRadius: '10px',
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: '#78350f',
+                      fontFamily: 'DM Sans, sans-serif',
+                    }}
+                  >
+                    {m.first_name} {m.last_name}
+                  </span>
+                  {m.probation_end_date && (
+                    <span
+                      style={{
+                        marginLeft: '10px',
+                        fontSize: '12px',
+                        fontFamily: 'DM Mono, monospace',
+                        color: '#92400e',
+                      }}
+                    >
+                      ends{' '}
+                      {new Date(m.probation_end_date).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleAutoGenerate(m.id)}
+                  disabled={generating}
+                  style={{
+                    padding: '7px 16px',
+                    background: '#d97706',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    fontFamily: 'DM Sans, sans-serif',
+                    cursor: generating ? 'not-allowed' : 'pointer',
+                    opacity: generating ? 0.7 : 1,
+                    whiteSpace: 'nowrap',
+                    transition: 'background 0.15s',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={e => { if (!generating) e.currentTarget.style.background = '#b45309' }}
+                  onMouseLeave={e => { if (!generating) e.currentTarget.style.background = '#d97706' }}
+                >
+                  Auto-generate ✦
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* AI Panel */}
       <div
+        ref={aiOutputRef}
         style={{
           background: '#0f1117',
           border: '1px solid #1a1f2e',

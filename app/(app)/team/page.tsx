@@ -88,6 +88,7 @@ export default function TeamPage() {
     start_date: '',
     status: 'Active' as typeof STATUSES[number],
     notes: '',
+    probation_end_date: '',
   })
 
   const loadMembers = useCallback(async () => {
@@ -137,6 +138,7 @@ export default function TeamPage() {
       status: form.status,
       notes: form.notes || null,
       color: MEMBER_COLORS[colorIndex],
+      probation_end_date: form.status === 'Probation' && form.probation_end_date ? form.probation_end_date : null,
     })
 
     if (error) {
@@ -152,6 +154,7 @@ export default function TeamPage() {
         start_date: '',
         status: 'Active',
         notes: '',
+        probation_end_date: '',
       })
       loadMembers()
     }
@@ -602,6 +605,19 @@ export default function TeamPage() {
               ))}
             </select>
           </div>
+          {form.status === 'Probation' && (
+            <div>
+              <label style={labelStyle}>Probation End Date</label>
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.probation_end_date}
+                onChange={e => setForm(f => ({ ...f, probation_end_date: e.target.value }))}
+                onFocus={e => (e.currentTarget.style.borderColor = '#2557ff')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              />
+            </div>
+          )}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelStyle}>Notes</label>
             <textarea
@@ -720,6 +736,18 @@ export default function TeamPage() {
                     }}
                   >
                     Started: {formatDate(selectedMember.start_date)}
+                  </div>
+                )}
+                {selectedMember.probation_end_date && (
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontFamily: 'DM Mono, monospace',
+                      color: '#dc2626',
+                      marginTop: '4px',
+                    }}
+                  >
+                    Probation ends: {formatDate(selectedMember.probation_end_date)}
                   </div>
                 )}
               </div>

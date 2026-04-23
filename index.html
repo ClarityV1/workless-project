@@ -1,28 +1,575 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>WorkLess Brain</title>
-    <style>
-        body { font-family: sans-serif; padding: 40px; background: #f0f2f5; }
-        #display { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .entry { padding: 10px; border-bottom: 1px solid #eee; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShiftDesk — Team Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f1117;--ink2:#1a1f2e;--surface:#f4f3ef;--card:#fff;
+  --border:#e8e5de;--border2:#d0cdc4;--muted:#9996a0;
+  --text:#0f1117;--text2:#6b6878;
+  --accent:#2557ff;--accent2:#1a44e0;
+  --green:#16a34a;--amber:#d97706;--red:#dc2626;--lime:#84cc16;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);min-height:100vh;font-size:14px}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);position:relative;overflow:hidden}
+#login-screen::before{content:'';position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(37,87,255,.12) 0%,transparent 70%);top:-200px;right:-150px;pointer-events:none}
+#login-screen::after{content:'';position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(132,204,22,.06) 0%,transparent 70%);bottom:-150px;left:-100px;pointer-events:none}
+.login-card{background:#141922;border:1px solid #242a38;border-radius:18px;padding:48px 44px;width:420px;position:relative;z-index:1}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px}
+.login-logo-mark{width:36px;height:36px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.login-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#f0ede8;letter-spacing:-.02em}
+.login-card h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#f0ede8;margin-bottom:8px;letter-spacing:-.02em}
+.login-card p{color:#6b7280;font-size:13px;margin-bottom:30px;line-height:1.6}
+.ms-btn{width:100%;padding:13px;background:#f0ede8;border:none;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#0f1117;cursor:pointer;transition:all .15s;margin-bottom:16px}
+.ms-btn:hover{background:#fff;transform:translateY(-1px)}
+.ms-logo{width:18px;height:18px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.ms-logo span{border-radius:1px}
+.ms-logo span:nth-child(1){background:#f25022}.ms-logo span:nth-child(2){background:#7fba00}
+.ms-logo span:nth-child(3){background:#00a4ef}.ms-logo span:nth-child(4){background:#ffb900}
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#242a38}
+.divider span{font-size:11px;color:#4b5563}
+.li{width:100%;background:#1e2535;border:1px solid #2a3245;border-radius:8px;color:#f0ede8;font-size:13px;padding:11px 14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px;transition:border-color .2s}
+.li:focus{border-color:var(--accent)}
+.li::placeholder{color:#4b5563}
+.login-btn{width:100%;padding:12px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;margin-top:4px}
+.login-btn:hover{background:var(--accent2)}
+.sec-note{margin-top:20px;padding:12px;background:rgba(37,87,255,.07);border-radius:8px;border:1px solid rgba(37,87,255,.15);font-size:11px;color:#6b7280;display:flex;gap:8px}
+
+/* APP SHELL */
+#app{display:none;min-height:100vh}
+.sidebar{width:220px;background:var(--ink);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;padding:20px 0;z-index:100}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:0 20px 24px;border-bottom:1px solid #1a1f2e;margin-bottom:16px}
+.sb-logo-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.sb-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#f0ede8;letter-spacing:-.01em}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:all .15s;font-size:13px;color:#6b7280;font-weight:500;border-left:2px solid transparent;margin:1px 0}
+.nav:hover{color:#f0ede8;background:#1a1f2e}
+.nav.active{color:#f0ede8;background:#1a1f2e;border-left-color:var(--accent)}
+.nav-ic{font-size:14px;width:18px;text-align:center}
+.sb-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid #1a1f2e}
+.user-chip{display:flex;align-items:center;gap:8px}
+.u-av{width:30px;height:30px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.u-name{font-size:12px;color:#9ca3af}
+.u-role{font-size:10px;color:#4b5563;font-family:'DM Mono',monospace}
+
+/* MAIN */
+.main{margin-left:220px;padding:32px 36px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.pt{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.ps{font-size:13px;color:var(--text2)}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;border:none}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:var(--accent2)}
+.btn-s{background:#fff;color:var(--text);border:1px solid var(--border)}.btn-s:hover{background:var(--surface)}
+.btn-g{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-g:hover{color:var(--text)}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.sl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace;margin-bottom:8px}
+.sv{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.sd{font-size:11px;color:var(--green)}.sd.am{color:var(--amber)}.sd.rd{color:var(--red)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.ct{font-size:14px;font-weight:600}.cs{font-size:12px;color:var(--text2);margin-top:2px}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border);background:#fafaf8}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+.bg{background:#f0fdf4;color:#16a34a}.ba{background:#fffbeb;color:#d97706}
+.br{background:#fef2f2;color:#dc2626}.bb{background:#eff6ff;color:#2557ff}
+.bgr{background:#f3f4f6;color:#6b7280}
+.pb{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.pf{height:100%;border-radius:3px;background:var(--green)}.pf.am{background:var(--amber)}.pf.rd{background:var(--red)}
+.ab{display:flex;gap:6px}
+.acb{padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:500;transition:all .1s}
+.acb:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.acb.bl{border-color:#bfdbfe;background:#eff6ff;color:var(--accent)}
+.acb.bl:hover{background:var(--accent);color:#fff}
+
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:1000;background:rgba(15,17,23,.55);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}
+.mo.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:14px;width:540px;max-height:82vh;overflow-y:auto;transform:translateY(12px);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.mo.open .modal{transform:translateY(0)}
+.modal.wide{width:640px}
+.mh{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.mx{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);padding:4px;line-height:1}
+.mb{padding:20px 24px}
+.mf{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;font-family:'DM Mono',monospace}
+.fi,.fsl,.fta{width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;background:#fff}
+.fi:focus,.fsl:focus,.fta:focus{border-color:var(--accent)}
+.fta{resize:vertical;min-height:80px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* AI PANEL */
+.aip{background:var(--ink);border-radius:12px;padding:20px;color:#f0ede8;margin-bottom:20px;border:1px solid #1e2535}
+.aiph{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.aidot{width:8px;height:8px;background:var(--lime);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.aipt{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.aips{font-size:11px;color:#6b7280;font-family:'DM Mono',monospace}
+.aio{background:#0f1117;border-radius:8px;padding:14px;font-size:13px;color:#d1d5db;line-height:1.75;min-height:100px;border:1px solid #242a38;white-space:pre-wrap;max-height:300px;overflow-y:auto}
+.aia{display:flex;gap:8px;margin-top:12px}
+.aibtn{padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .15s}
+.aibp{background:var(--accent);color:#fff}.aibs{background:#1e2535;color:#9ca3af;border:1px solid #2a3245}
+.aibtn:hover{opacity:.85}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* UPLOAD */
+.upz{border:2px dashed var(--border2);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .15s;background:#fafaf8}
+.upz:hover{border-color:var(--accent);background:#eff6ff}
+.upi{font-size:30px;margin-bottom:8px}
+.upt{font-size:13px;color:var(--text2)}.upt strong{color:var(--accent)}
+.ti{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:#fff}
+
+/* PERF */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pil{font-size:11px;color:var(--text2);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase}
+.pin{width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:15px;font-weight:600;font-family:'Syne',sans-serif;text-align:center;outline:none}
+.pin:focus{border-color:var(--accent)}
+
+/* MISC */
+.es{text-align:center;padding:48px 20px;color:var(--text2)}
+.ei{font-size:36px;margin-bottom:12px}
+.et{font-size:14px;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:#f0ede8;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+input[type=file]{display:none}
+</style>
 </head>
 <body>
-    <h1>WorkLess Apprentice Log</h1>
-    <div id="display">Waiting for data from extension...</div>
 
-    <script>
-        window.addEventListener("message", (event) => {
-            if (event.data && event.data.type === "WORKLESS_TASK") {
-                const data = event.data.payload;
-                const display = document.getElementById('display');
-                display.innerHTML = "<h3>Live Recording Data:</h3>";
-                data.forEach((step, i) => {
-                    display.innerHTML += `<div class="entry">Step ${i+1}: <b>${step.text}</b> (${step.element})</div>`;
-                });
-            }
-        });
-    </script>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">📋</div>
+      <div class="login-logo-text">ShiftDesk</div>
+    </div>
+    <h2>Welcome back</h2>
+    <p>Your people management platform for shift managers. Sign in to access your team.</p>
+    <button class="ms-btn" onclick="doLogin('ms')">
+      <div class="ms-logo"><span></span><span></span><span></span><span></span></div>
+      Continue with Microsoft
+    </button>
+    <div class="divider"><span>or use email</span></div>
+    <input class="li" type="email" id="le" placeholder="Email address" value="manager@depot.co.uk">
+    <input class="li" type="password" id="lp" placeholder="Password" value="••••••••">
+    <button class="login-btn" onclick="doLogin('email')">Sign in →</button>
+    <div class="sec-note">🔒 Data stored securely in your browser. Templates and team records never leave your device without your permission.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">📋</div>
+      <div class="sb-logo-text">ShiftDesk</div>
+    </div>
+    <div class="nav active" onclick="go('dashboard',this)"><span class="nav-ic">⊞</span> Dashboard</div>
+    <div class="nav" onclick="go('team',this)"><span class="nav-ic">👥</span> My Team</div>
+    <div class="nav" onclick="go('performance',this)"><span class="nav-ic">📈</span> Performance</div>
+    <div class="nav" onclick="go('reviews',this)"><span class="nav-ic">📝</span> Reviews & 1-2-1s</div>
+    <div class="nav" onclick="go('templates',this)"><span class="nav-ic">📂</span> Templates</div>
+    <div class="nav" onclick="go('settings',this)"><span class="nav-ic">⚙</span> Settings</div>
+    <div class="sb-bottom">
+      <div class="user-chip">
+        <div class="u-av" id="sbAv">?</div>
+        <div><div class="u-name" id="sbName">—</div><div class="u-role" id="sbRole">Shift Manager</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="pg-dashboard">
+      <div class="ph">
+        <div><div class="pt" id="dash-greet">Good morning 👋</div><div class="ps" id="dash-date"></div></div>
+        <button class="btn btn-p" onclick="go('performance',document.querySelectorAll('.nav')[2])">+ Log Performance</button>
+      </div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Team Size</div><div class="sv" id="st-team">0</div><div class="sd">Active members</div></div>
+        <div class="sc"><div class="sl">Reviews Due</div><div class="sv" id="st-rev">0</div><div class="sd am">This month</div></div>
+        <div class="sc"><div class="sl">On Probation</div><div class="sv" id="st-prob">0</div><div class="sd">Monitoring</div></div>
+        <div class="sc"><div class="sl">Templates</div><div class="sv" id="st-tmpl">0</div><div class="sd">Uploaded</div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div><div class="ct">Recent Activity</div><div class="cs">Latest across your team</div></div></div>
+        <div id="dash-activity" style="padding:16px 20px"></div>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="page" id="pg-team">
+      <div class="ph">
+        <div><div class="pt">My Team</div><div class="ps">Roster, roles and status</div></div>
+        <button class="btn btn-p" onclick="openMo('mo-add')">+ Add Member</button>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Team Roster</div><div id="tc" style="font-size:12px;color:var(--text2)">0 members</div></div>
+        <div id="team-wrap"></div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="page" id="pg-performance">
+      <div class="ph"><div><div class="pt">Performance</div><div class="ps">Log and track your team over time</div></div></div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="ch"><div><div class="ct">Log This Week</div><div class="cs">Quick input — takes 2 minutes</div></div></div>
+        <div style="padding:20px">
+          <div class="fg"><label class="fl">Team Member</label><select class="fsl" id="pm"></select></div>
+          <div class="pg">
+            <div><div class="pil">Pick Rate %</div><input class="pin" type="number" id="pr" placeholder="94" min="0" max="100"></div>
+            <div><div class="pil">Accuracy %</div><input class="pin" type="number" id="pa" placeholder="99" min="0" max="100"></div>
+            <div><div class="pil">Attendance</div><select class="fsl" id="pat"><option>Full week</option><option>1 day absent</option><option>2+ days absent</option><option>Late</option></select></div>
+          </div>
+          <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="pn" placeholder="Observations, concerns or standout performance..."></textarea></div>
+          <button class="btn btn-p" onclick="savPerf()">Save Log</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Performance History</div></div>
+        <div id="perf-hist" style="padding:16px 20px"></div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="page" id="pg-reviews">
+      <div class="ph"><div><div class="pt">Reviews & 1-2-1s</div><div class="ps">AI-generated discussion points from performance data</div></div></div>
+      <div class="aip">
+        <div class="aiph"><div class="aidot"></div><div><div class="aipt">ShiftDesk AI</div><div class="aips">Powered by Gemini · Generates discussion points from real performance history</div></div></div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <select class="fsl" id="rm" style="flex:1;min-width:160px;background:#1e2535;border-color:#2a3245;color:#f0ede8"></select>
+          <select class="fsl" id="rt" style="flex:1;min-width:160px;background:#1e2535;border-color:#2a3245;color:#f0ede8">
+            <option>1-2-1 Discussion</option><option>Probation Review</option>
+            <option>Performance Review</option><option>Return to Work</option><option>Disciplinary</option>
+          </select>
+          <button class="aibtn aibp" onclick="genReview()">Generate ✦</button>
+        </div>
+        <div class="aio" id="ai-out">Select a team member and review type above, then click Generate. ShiftDesk AI will write discussion points based on their performance history...</div>
+        <div class="aia">
+          <button class="aibtn aibs" onclick="cpyAI()">📋 Copy</button>
+          <button class="aibtn aibs" onclick="savRev()">💾 Save to profile</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Saved Reviews</div></div>
+        <div id="saved-revs" style="padding:16px 20px"></div>
+      </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="page" id="pg-templates">
+      <div class="ph"><div><div class="pt">Templates</div><div class="ps">Upload company templates — AI uses them to generate compliant reviews</div></div></div>
+      <div class="upz" onclick="document.getElementById('fi').click()">
+        <input type="file" id="fi" accept=".pdf,.doc,.docx,.txt" multiple onchange="handleUp(this)">
+        <div class="upi">📄</div>
+        <div class="upt"><strong>Click to upload</strong> or drag and drop</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">PDF, Word or text · 1-2-1s, probation, disciplinary templates</div>
+      </div>
+      <div id="tmpl-list" style="margin-top:16px"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="pg-settings">
+      <div class="ph"><div><div class="pt">Settings</div><div class="ps">Configure ShiftDesk for your site</div></div></div>
+      <div class="card">
+        <div class="ch"><div class="ct">AI & Account</div></div>
+        <div style="padding:20px">
+          <div class="fg"><label class="fl">Gemini API Key</label><input class="fi-inp" type="password" id="s-key" placeholder="AIza..." style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"><div style="font-size:11px;color:var(--text2);margin-top:4px">Free at aistudio.google.com — powers the review generator</div></div>
+          <div class="fr">
+            <div class="fg"><label class="fl">Your Name</label><input class="fi" type="text" id="s-name" placeholder="e.g. James O" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+            <div class="fg"><label class="fl">Your Role</label><input type="text" id="s-role" placeholder="e.g. Night Shift Manager" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+          </div>
+          <div class="fg"><label class="fl">Site / Depot</label><input type="text" id="s-site" placeholder="e.g. Dagenham DC" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+          <button class="btn btn-p" onclick="savSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD MEMBER MODAL -->
+<div class="mo" id="mo-add">
+  <div class="modal">
+    <div class="mh"><div class="mt">Add Team Member</div><button class="mx" onclick="cloMo('mo-add')">✕</button></div>
+    <div class="mb">
+      <div class="fr">
+        <div class="fg"><label class="fl">First Name</label><input class="fi" type="text" id="mf" placeholder="John" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+        <div class="fg"><label class="fl">Last Name</label><input class="fi" type="text" id="ml" placeholder="Smith" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Role</label><input class="fi" type="text" id="mr" placeholder="Picker, Replen, Team Lead..." style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+        <div class="fg"><label class="fl">Shift</label><select class="fsl" id="ms"><option>Night</option><option>Day</option><option>Twilight</option><option>Flexi</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Start Date</label><input class="fi" type="date" id="msd" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+        <div class="fg"><label class="fl">Status</label><select class="fsl" id="mst"><option>Active</option><option>Probation</option><option>Absence</option><option>Performance Plan</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="mn" placeholder="Any initial notes..."></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cloMo('mo-add')">Cancel</button><button class="btn btn-p" onclick="addMem()">Add to team</button></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="mo" id="mo-profile">
+  <div class="modal wide">
+    <div class="mh"><div class="mt" id="prof-title">Profile</div><button class="mx" onclick="cloMo('mo-profile')">✕</button></div>
+    <div class="mb" id="prof-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS=['#2557ff','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#059669'];
+let S={user:null,team:[],perf:[],revs:[],tmpls:[],cfg:{key:'',name:'',role:'',site:''}};
+
+function load(){try{const d=localStorage.getItem('sd2');if(d)Object.assign(S,JSON.parse(d));}catch(e){}}
+function save(){localStorage.setItem('sd2',JSON.stringify(S));}
+
+// AUTH
+function doLogin(m){
+  S.user={name:S.cfg.name||document.getElementById('le').value.split('@')[0],method:m};
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  bootApp();
+}
+
+function bootApp(){
+  updSidebar();updStats();updDash();updTeam();updSelects();updTmpls();updRevs();updPerfHist();
+  const n=new Date();
+  const h=n.getHours();
+  const g=h<12?'Good morning':'Good afternoon';
+  document.getElementById('dash-greet').textContent=g+' '+(S.cfg.name||'')+ ' 👋';
+  document.getElementById('dash-date').textContent=n.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+(S.cfg.role?' · '+S.cfg.role:'');
+  // Load settings into form
+  document.getElementById('s-key').value=S.cfg.key||'';
+  document.getElementById('s-name').value=S.cfg.name||'';
+  document.getElementById('s-role').value=S.cfg.role||'';
+  document.getElementById('s-site').value=S.cfg.site||'';
+}
+
+function updSidebar(){
+  const n=S.cfg.name||S.user?.name||'Manager';
+  document.getElementById('sbName').textContent=n;
+  document.getElementById('sbAv').textContent=n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'M';
+  document.getElementById('sbRole').textContent=S.cfg.role||'Shift Manager';
+}
+
+// NAV
+function go(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+  document.getElementById('pg-'+p).classList.add('active');
+  if(el)el.classList.add('active');
+  if(p==='performance')updPerfSel();
+  if(p==='reviews')updRevSel();
+}
+
+// TEAM
+function openMo(id){document.getElementById(id).classList.add('open');}
+function cloMo(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))e.target.classList.remove('open');});
+
+function addMem(){
+  const f=document.getElementById('mf').value.trim();
+  const l=document.getElementById('ml').value.trim();
+  if(!f||!l){toast('Enter first and last name');return;}
+  S.team.push({id:Date.now()+'',first:f,last:l,role:document.getElementById('mr').value.trim()||'Operative',shift:document.getElementById('ms').value,startDate:document.getElementById('msd').value,status:document.getElementById('mst').value,notes:document.getElementById('mn').value.trim(),color:COLORS[S.team.length%COLORS.length],added:new Date().toISOString()});
+  save();cloMo('mo-add');updTeam();updSelects();updStats();updDash();
+  toast(f+' '+l+' added');
+  ['mf','ml','mr','mn'].forEach(id=>document.getElementById(id).value='');
+}
+
+function updTeam(){
+  document.getElementById('tc').textContent=S.team.length+' members';
+  const w=document.getElementById('team-wrap');
+  if(!S.team.length){w.innerHTML='<div class="es"><div class="ei">👥</div><div class="et">No team members yet</div><button class="btn btn-p" onclick="openMo(\'mo-add\')">Add first member</button></div>';return;}
+  w.innerHTML=`<table><thead><tr><th>Name</th><th>Role</th><th>Shift</th><th>Status</th><th>Since</th><th>Actions</th></tr></thead><tbody>${S.team.map(m=>`
+    <tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:30px;height:30px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${m.first[0]}${m.last[0]}</div><span style="font-weight:500">${m.first} ${m.last}</span></div></td>
+    <td style="color:var(--text2)">${m.role}</td>
+    <td><span class="badge bgr">${m.shift}</span></td>
+    <td><span class="badge ${sbadge(m.status)}">${m.status}</span></td>
+    <td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:11px">${m.startDate?fdate(m.startDate):'—'}</td>
+    <td><div class="ab"><button class="acb bl" onclick="viewProf('${m.id}')">Profile</button><button class="acb" onclick="remMem('${m.id}')">Remove</button></div></td></tr>`).join('')}</tbody></table>`;
+}
+
+function sbadge(s){return s==='Active'?'bg':s==='Probation'?'ba':s==='Absence'?'br':'bb';}
+function remMem(id){S.team=S.team.filter(m=>m.id!==id);save();updTeam();updSelects();updStats();toast('Member removed');}
+
+// PROFILE
+function viewProf(id){
+  const m=S.team.find(x=>x.id===id);if(!m)return;
+  const logs=S.perf.filter(p=>p.mid===id).slice(-6).reverse();
+  const revs=S.revs.filter(r=>r.mid===id).slice(-4).reverse();
+  document.getElementById('prof-title').textContent=m.first+' '+m.last;
+  document.getElementById('prof-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+      <div style="width:52px;height:52px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">${m.first[0]}${m.last[0]}</div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${m.first} ${m.last}</div><div style="font-size:12px;color:var(--text2);display:flex;gap:10px;margin-top:4px"><span>${m.role}</span><span>·</span><span>${m.shift}</span><span>·</span><span class="badge ${sbadge(m.status)}">${m.status}</span></div></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;font-family:'DM Mono',monospace">Performance History</div>
+    ${!logs.length?'<p style="color:var(--text2);font-size:13px;margin-bottom:16px">No logs yet</p>':logs.map(l=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2);font-family:'DM Mono',monospace;font-size:11px">${fdate(l.date)}</span><span>Pick <strong>${l.pr}%</strong> · Acc <strong>${l.acc}%</strong> · ${l.att}${l.notes?' — '+l.notes.slice(0,40):''}</span></div>`).join('')}
+    <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:16px;margin-bottom:10px;font-family:'DM Mono',monospace">Saved Reviews</div>
+    ${!revs.length?'<p style="color:var(--text2);font-size:13px">No reviews yet</p>':revs.map(r=>`<div style="background:#fafaf8;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px"><div style="font-weight:600;margin-bottom:4px">${r.type} <span style="color:var(--text2)">· ${fdate(r.date)}</span></div><div style="color:var(--text2);line-height:1.5">${r.content.slice(0,200)}${r.content.length>200?'…':''}</div></div>`).join('')}
+    ${m.notes?`<div style="margin-top:16px;font-size:12px;color:var(--text2)"><strong>Notes:</strong> ${m.notes}</div>`:''}`;
+  openMo('mo-profile');
+}
+
+// PERFORMANCE
+function updPerfSel(){const s=document.getElementById('pm');s.innerHTML='<option value="">Select member...</option>'+S.team.map(m=>`<option value="${m.id}">${m.first} ${m.last}</option>`).join('');}
+function updSelects(){updPerfSel();updRevSel();}
+
+function savPerf(){
+  const mid=document.getElementById('pm').value;
+  if(!mid){toast('Select a team member');return;}
+  S.perf.push({id:Date.now()+'',mid,date:new Date().toISOString().split('T')[0],pr:document.getElementById('pr').value||'—',acc:document.getElementById('pa').value||'—',att:document.getElementById('pat').value,notes:document.getElementById('pn').value.trim()});
+  save();updPerfHist();updDash();updStats();toast('Performance logged');
+  ['pr','pa','pn'].forEach(id=>document.getElementById(id).value='');
+}
+
+function updPerfHist(){
+  const d=document.getElementById('perf-hist');
+  const logs=[...S.perf].reverse().slice(0,25);
+  if(!logs.length){d.innerHTML='<div class="es"><div class="ei">📈</div><div class="et">No logs yet</div></div>';return;}
+  d.innerHTML=`<table><thead><tr><th>Member</th><th>Date</th><th>Pick Rate</th><th>Accuracy</th><th>Attendance</th><th>Notes</th></tr></thead><tbody>${logs.map(l=>{
+    const m=S.team.find(t=>t.id===l.mid);
+    const pr=parseFloat(l.pr);const fc=pr>=95?'':pr>=85?'am':'rd';
+    return`<tr><td style="font-weight:500">${m?m.first+' '+m.last:'Unknown'}</td><td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:11px">${fdate(l.date)}</td><td><div style="display:flex;align-items:center"><div class="pb"><div class="pf ${fc}" style="width:${Math.min(pr||0,100)}%"></div></div>${l.pr}%</div></td><td>${l.acc}%</td><td><span class="badge ${l.att==='Full week'?'bg':'ba'}">${l.att}</span></td><td style="color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.notes||'—'}</td></tr>`;}).join('')}</tbody></table>`;
+}
+
+// REVIEWS
+function updRevSel(){const s=document.getElementById('rm');s.innerHTML='<option value="">Select team member...</option>'+S.team.map(m=>`<option value="${m.id}">${m.first} ${m.last}</option>`).join('');}
+
+async function genReview(){
+  const mid=document.getElementById('rm').value;
+  const type=document.getElementById('rt').value;
+  if(!mid){toast('Select a team member');return;}
+  const key=S.cfg.key;
+  if(!key){toast('Add Gemini API key in Settings first');go('settings',document.querySelectorAll('.nav')[5]);return;}
+  const m=S.team.find(x=>x.id===mid);
+  const logs=S.perf.filter(p=>p.mid===mid);
+  const out=document.getElementById('ai-out');
+  out.textContent='✦ Generating discussion points...';
+  const prompt=`You are an experienced logistics operations manager preparing for a ${type} with a team member in a UK warehouse.
+
+Team member: ${m.first} ${m.last}
+Role: ${m.role} | Shift: ${m.shift} | Status: ${m.status}
+Start date: ${m.startDate||'unknown'}
+${m.notes?'Manager notes: '+m.notes:''}
+
+Performance data (most recent first):
+${logs.slice(-6).reverse().map(l=>`- ${l.date}: Pick rate ${l.pr}%, Accuracy ${l.acc}%, ${l.att}${l.notes?', '+l.notes:''}`).join('\n')||'No performance data recorded yet.'}
+
+Write practical ${type} discussion points for a busy shift manager. Include:
+1. Opening — check in on how they are
+2. Performance discussion based on the data above
+3. Key points specific to a ${type}
+4. Actions or targets to agree together
+5. Closing and next steps
+
+Keep it concise and professional. Plain text only, no markdown.`;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.7,maxOutputTokens:800}})});
+    if(!res.ok){const e=await res.json();out.textContent='Error: '+(e.error?.message||res.status);return;}
+    const data=await res.json();
+    out.textContent=data.candidates[0].content.parts[0].text.trim();
+  }catch(e){out.textContent='Error: '+e.message;}
+}
+
+function cpyAI(){navigator.clipboard.writeText(document.getElementById('ai-out').textContent).then(()=>toast('Copied'));}
+
+function savRev(){
+  const mid=document.getElementById('rm').value;
+  const type=document.getElementById('rt').value;
+  const content=document.getElementById('ai-out').textContent;
+  if(!mid||content.includes('Select a team')){toast('Generate a review first');return;}
+  S.revs.push({id:Date.now()+'',mid,type,content,date:new Date().toISOString().split('T')[0]});
+  save();updRevs();toast('Saved to profile');
+}
+
+function updRevs(){
+  const d=document.getElementById('saved-revs');
+  if(!S.revs.length){d.innerHTML='<div class="es"><div class="ei">📝</div><div class="et">No saved reviews yet</div></div>';return;}
+  d.innerHTML=[...S.revs].reverse().map(r=>{const m=S.team.find(t=>t.id===r.mid);return`<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:500">${m?m.first+' '+m.last:'Unknown'} · <span style="color:var(--text2)">${r.type}</span></div><div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace">${fdate(r.date)}</div></div><button class="acb bl" onclick="viewRev('${r.id}')">View</button></div>`;}).join('');
+}
+
+function viewRev(id){
+  const r=S.revs.find(x=>x.id===id);if(!r)return;
+  const m=S.team.find(t=>t.id===r.mid);
+  document.getElementById('prof-title').textContent=(m?m.first+' '+m.last:'')+' · '+r.type;
+  document.getElementById('prof-body').innerHTML=`<pre style="white-space:pre-wrap;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.8;color:var(--text)">${r.content}</pre>`;
+  openMo('mo-profile');
+}
+
+// TEMPLATES
+function handleUp(inp){
+  Array.from(inp.files).forEach(f=>S.tmpls.push({id:Date.now()+Math.random()+'',name:f.name,size:f.size,date:new Date().toISOString()}));
+  save();updTmpls();updStats();toast(inp.files.length+' template(s) uploaded');
+}
+
+function updTmpls(){
+  const d=document.getElementById('tmpl-list');
+  if(!S.tmpls.length){d.innerHTML='<div class="es"><div class="ei">📂</div><div class="et">No templates yet</div></div>';return;}
+  d.innerHTML=S.tmpls.map(t=>`<div class="ti"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><div><div style="font-weight:500;font-size:13px">${t.name}</div><div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace">${fbytes(t.size)} · ${fdate(t.date)}</div></div></div><button class="acb" onclick="remTmpl('${t.id}')">Remove</button></div>`).join('');
+}
+
+function remTmpl(id){S.tmpls=S.tmpls.filter(t=>t.id!==id);save();updTmpls();updStats();toast('Removed');}
+
+// SETTINGS
+function savSettings(){
+  S.cfg={key:document.getElementById('s-key').value.trim(),name:document.getElementById('s-name').value.trim(),role:document.getElementById('s-role').value.trim(),site:document.getElementById('s-site').value.trim()};
+  save();updSidebar();toast('Settings saved');
+}
+
+// DASHBOARD
+function updStats(){
+  document.getElementById('st-team').textContent=S.team.length;
+  document.getElementById('st-rev').textContent=S.revs.length;
+  document.getElementById('st-prob').textContent=S.team.filter(m=>m.status==='Probation').length;
+  document.getElementById('st-tmpl').textContent=S.tmpls.length;
+}
+
+function updDash(){
+  updStats();
+  const d=document.getElementById('dash-activity');
+  const all=[...S.perf.map(p=>({date:p.date,type:'perf',data:p})),...S.revs.map(r=>({date:r.date,type:'rev',data:r}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  if(!all.length){d.innerHTML='<div class="es"><div class="ei">📋</div><div class="et">No activity yet — add your team to get started</div><button class="btn btn-p" onclick="go(\'team\',document.querySelectorAll(\'.nav\')[1])">Add team</button></div>';return;}
+  d.innerHTML=all.map(a=>{const m=S.team.find(t=>t.id===a.data.mid);const n=m?m.first+' '+m.last:'Unknown';return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><div>${a.type==='perf'?`<span style="font-weight:500">${n}</span> — performance logged · Pick: ${a.data.pr}%, Acc: ${a.data.acc}%`:`<span style="font-weight:500">${n}</span> — ${a.data.type} saved`}</div><span style="color:var(--text2);font-size:11px;font-family:'DM Mono',monospace;flex-shrink:0;margin-left:16px">${fdate(a.date)}</span></div>`;}).join('');
+}
+
+// UTILS
+function fdate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
+function fbytes(b){if(b<1024)return b+'B';if(b<1048576)return Math.round(b/1024)+'KB';return(b/1048576).toFixed(1)+'MB';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);}
+
+// BOOT
+load();
+if(S.cfg.name&&S.team.length>0){S.user={name:S.cfg.name};doLogin('auto');}
+</script>
 </body>
 </html>

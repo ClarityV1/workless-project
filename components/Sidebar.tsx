@@ -9,7 +9,9 @@ import type { Profile } from '@/lib/types'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '⊞' },
   { href: '/team', label: 'My Team', icon: '👥' },
+  { href: '/calendar', label: 'Calendar', icon: '📅' },
   { href: '/performance', label: 'Performance', icon: '📈' },
+  { href: '/import', label: 'Import Data', icon: '⬆️' },
   { href: '/reviews', label: 'Reviews & 1-2-1s', icon: '📝' },
   { href: '/templates', label: 'Templates', icon: '📂' },
   { href: '/settings', label: 'Settings', icon: '⚙' },

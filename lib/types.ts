@@ -10,6 +10,7 @@ export interface TeamMember {
   notes: string | null
   color: string
   created_at: string
+  probation_end_date: string | null
 }
 
 export interface PerformanceLog {
